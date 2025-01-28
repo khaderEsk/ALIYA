@@ -13,7 +13,7 @@ use LaravelLegends\EloquentFilter\Concerns\HasFilter;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles,HasFilter;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles, HasFilter;
 
     /**
      * The attributes that are mass assignable.
@@ -24,6 +24,8 @@ class User extends Authenticatable implements JWTSubject
         'fullName',
         'email',
         'password',
+        'code',
+        'email_verified_at'
     ];
 
     /**
@@ -36,9 +38,7 @@ class User extends Authenticatable implements JWTSubject
         'remember_token',
         'created_at',
         'updated_at',
-        'code',
         'google_id',
-        'email_verified_at'
     ];
 
     /**

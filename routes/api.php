@@ -5,6 +5,7 @@ use App\Http\Controllers\PasswordController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\EmailController;
 use App\Http\Controllers\FlightController;
 use App\Http\Controllers\GovernmentController;
 
@@ -45,6 +46,7 @@ Route::group(['middleware' => ['jwt.verify']], function () {
 
     Route::group(['middleware' => ['hasRole:admin|user']], function () {
         Route::get('getAllGovernments', [GovernmentController::class, 'index']);
+        Route::Post('verification', [EmailController::class, 'verification']);
         Route::group(['prefix' => 'flights'], function () {
             Route::Post('getAll', [FlightController::class, 'index']);
             Route::get('show/{id}', [FlightController::class, 'show']);

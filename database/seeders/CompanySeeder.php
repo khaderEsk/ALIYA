@@ -19,6 +19,9 @@ class CompanySeeder extends Seeder
             'fullName' =>  'القدموس',
             'email' => 'kadmos@gmail.com',
             'password' => bcrypt('12345678q'),
+            'email_verified_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
         $admin = User::find(1);
         $role = Role::where('name', 'admin')->first();
@@ -28,6 +31,7 @@ class CompanySeeder extends Seeder
             'fullName' =>  'الاسطورة',
             'email' => 'astora@gmail.com',
             'password' => bcrypt('12345678q'),
+            'email_verified_at' => now(),
         ]);
 
         $admin = User::find(2);
@@ -38,6 +42,7 @@ class CompanySeeder extends Seeder
             'fullName' =>  'الحسن',
             'email' => 'alhasan@gmail.com',
             'password' => bcrypt('12345678q'),
+            'email_verified_at' => now(),
         ]);
 
         $admin = User::find(3);

@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
+use App\Mail\VerfMail;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Traits\GeneralTrait;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Spatie\Permission\Models\Role;
 
@@ -39,25 +42,45 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $request)
     {
+        DB::beginTransaction();
+        try {
+            $random_number = random_int(100000, 999999);
+            $mailData = [
+                'title' => 'Code login',
+                'code' => $random_number,
+            ];
+            // try {
+            Mail::to($request->email)->send(new VerfMail($mailData));
+            // } catch (\Exception $e) {
+            //     return $this->returnError(400,$e->getMessage());
+            // }
 
-        $user = User::create([
-            'fullName'       => $request->fullName,
-            'email'          => $request->email,
-            'password'       => $request->password,
-        ]);
+            $user = User::create([
+                'fullName'       => $request->fullName,
+                'email'          => $request->email,
+                'password'       => $request->password,
+                'code'           => $random_number
+            ]);
 
-        $credentials = ['email' => $user->email, 'password' => $request->password];
-        $token = JWTAuth::attempt($credentials);
-        $user->token = $token;
+            $credentials = ['email' => $user->email, 'password' => $request->password];
+            $token = JWTAuth::attempt($credentials);
+            $user->token = $token;
 
-        $role = Role::where('id', '=', $request->role_id)->first();
-        if (!$role)
-            return $this->returnError(404, 'Role Not found');
-        $user->assignRole($role);
-        $user->loadMissing(['roles']);
-        if (!$token)
-            return $this->returnError(401, 'Unauthorized');
-        return $this->returnData($user, __('backend.operation completed successfully', [], app()->getLocale()));
+            $role = Role::where('id', '=', $request->role_id)->first();
+            if (!$role) {
+                return $this->returnError(404, 'Role Not found');
+            }
+            $user->assignRole($role);
+            $user->loadMissing(['roles']);
+            if (!$token) {
+                return $this->returnError(401, 'Unauthorized');
+            }
+            DB::commit();
+            return $this->returnData($user, __('backend.operation completed successfully', [], app()->getLocale()));
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Something went wrong, please try again.']);
+        }
     }
 
 
