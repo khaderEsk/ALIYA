@@ -10,11 +10,15 @@ class Flight extends Model
     use HasFactory;
     protected $table = "flights";
     protected $fillable = [
-        'statingPoint',
         'targetPoint',
+        'statingPoint',
         'numberPassengers',
         'startingTime',
         'endingTime',
+    ];
+    protected $hidden = [
+        'created_at',
+        'updated_at'
     ];
     public function startingPointGovernorate()
     {
@@ -24,5 +28,9 @@ class Flight extends Model
     public function targetPointGovernorate()
     {
         return $this->belongsTo(Governorate::class, 'targetPoint');
+    }
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

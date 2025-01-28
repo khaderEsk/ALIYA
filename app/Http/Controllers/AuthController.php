@@ -22,17 +22,12 @@ class AuthController extends Controller
     {
         $credentials = $request->only(['email', 'password']);
         $token = JWTAuth::attempt($credentials);
-
         $exist = User::where('email', $request->email)->first();
         if ($exist && !$token)
             return $this->returnError(401, __('backend.The password is wrong', [], app()->getLocale()));
 
         if (!$token)
             return $this->returnError(401, __('backend.Account Not found', [], app()->getLocale()));
-
-        if (isset($exist->block))
-            return $this->returnError(401, __('backend.You are block', [], app()->getLocale()));
-
         $user = auth()->user();
         $user->token = $token;
         $user->loadMissing(['roles']);

@@ -13,6 +13,12 @@ class Governorate extends Model
     protected $fillable = [
         'name',
     ];
+
+
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
     public function startingFlights()
     {
         return $this->hasMany(Flight::class, 'statingPoint');

@@ -51,6 +51,10 @@ class User extends Authenticatable implements JWTSubject
     ];
 
 
+    public function flights()
+    {
+        return $this->hasMany(Flight::class, 'user_id');
+    }
 
     public function setPasswordAttribute($value)
     {

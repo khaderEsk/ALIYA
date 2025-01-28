@@ -11,28 +11,22 @@ use Spatie\Permission\Contracts\Role;
 
 class RoleMiddleware
 {
-    Use GeneralTrait;
+    use GeneralTrait;
 
-
-    public function handle(Request $request, Closure $next,$role)
+    public function handle($request, Closure $next, $role)
     {
-        try {
+        $user = Auth::user();
 
-            $user=Auth::user();
-
-            $roles = is_array($role)
-                ? $role
-                : explode('|', $role);
-
-            foreach ($roles as $role) {
-                if($user->hasRole($role))
-                    return $next($request);
-            }
-
-
-        }catch (\Exception $e){
-            return $this->returnError('512', "you dont have the right role");
+        // تحقق إذا كان المستخدم موجودًا
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized: User not authenticated'], 401);
         }
-        return $this->returnError('512', "you dont have the right role");
+
+        // تحقق من الدور
+        if (!$user->hasRole($role)) {
+            return response()->json(['message' => 'This action is unauthorized.'], 403);
+        }
+
+        return $next($request);
     }
 }

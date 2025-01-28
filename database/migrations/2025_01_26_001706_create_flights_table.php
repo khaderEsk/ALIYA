@@ -13,15 +13,21 @@ return new class extends Migration
     {
         Schema::create('flights', function (Blueprint $table) {
             $table->id();
+            $table->integer('user_id')
+                ->references('id')->on('Users')
+                ->onDelete('cascade');
+
             $table->integer('statingPoint')
                 ->references('id')->on('governorates')
                 ->onDelete('cascade');
+
             $table->integer('targetPoint')
                 ->references('id')->on('governorates')
                 ->onDelete('cascade');
+                
             $table->integer('numberPassengers');
-            $table->dateTime('startingTime');
-            $table->dateTime('endingTime');
+            $table->time('startingTime');
+            $table->time('endingTime');
             $table->timestamps();
         });
     }
