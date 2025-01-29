@@ -63,6 +63,7 @@ class AuthController extends Controller
                 'fullName'       => $request->fullName,
                 'email'          => $request->email,
                 'password'       => $request->password,
+                'phoneNumber'    => $request->phoneNumber,
                 'code'           => $random_number
             ]);
 

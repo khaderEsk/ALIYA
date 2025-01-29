@@ -23,6 +23,7 @@ class RegisterRequest extends FormRequest
             'fullName' => 'required|string|between:2,100',
             'email' => 'required|string|email|max:100|unique:users',
             'password' => 'required|string|min:6|regex:/[a-zA-Z]/',
+            'phoneNumber' => 'string|size:10|nullable',
             'role_id' => 'required|integer'
         ];
     }
