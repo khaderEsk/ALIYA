@@ -26,6 +26,10 @@ class AuthController extends Controller
         $credentials = $request->only(['email', 'password']);
         $token = JWTAuth::attempt($credentials);
         $exist = User::where('email', $request->email)->first();
+
+        if (!$exist->email_verified_at) {
+            return $this->returnError(400, 'Please enter  the Verification Code');
+        }
         if ($exist && !$token)
             return $this->returnError(401, __('backend.The password is wrong', [], app()->getLocale()));
 
