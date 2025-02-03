@@ -8,6 +8,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\FlightController;
 use App\Http\Controllers\GovernmentController;
+use App\Http\Controllers\PassengerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,20 +37,23 @@ Route::get('test', [AuthController::class, 'test'])->middleware('jwt.verify');
 
 
 Route::group(['middleware' => ['jwt.verify']], function () {
-    Route::group(['middleware' => ['hasRole:admin']], function () {
-        Route::group(['prefix' => 'flights'], function () {
+
+
+    Route::group(['prefix' => 'flights'], function () {
+        Route::get('getAllGovernments', [GovernmentController::class, 'index']);
+        Route::Post('verification', [EmailController::class, 'verification']);
+
+        Route::group(['middleware' => ['hasRole:admin|user']], function () {
+            Route::Post('getAll', [FlightController::class, 'index']);
+            Route::get('show/{id}', [FlightController::class, 'show']);
+            Route::Post('reservation/{id}', [PassengerController::class, 'store']);
+        });
+
+        Route::group(['middleware' => ['hasRole:admin']], function () {
             Route::post('store', [FlightController::class, 'store']);
             Route::Post('update/{id}', [FlightController::class, 'update']);
             Route::delete('delete/{id}', [FlightController::class, 'destroy']);
-        });
-    });
-
-    Route::group(['middleware' => ['hasRole:admin|user']], function () {
-        Route::get('getAllGovernments', [GovernmentController::class, 'index']);
-        Route::Post('verification', [EmailController::class, 'verification']);
-        Route::group(['prefix' => 'flights'], function () {
-            Route::Post('getAll', [FlightController::class, 'index']);
-            Route::get('show/{id}', [FlightController::class, 'show']);
+            Route::get('getMyFlight', [FlightController::class, 'getMyFlight']);
         });
     });
 });

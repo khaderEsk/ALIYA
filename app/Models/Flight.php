@@ -37,5 +37,4 @@ class Flight extends Model
     {
         return $this->hasMany(Passenger::class, 'flight_id');
     }
-   
 }

@@ -37,9 +37,20 @@ class AuthController extends Controller
         }
         $user = auth()->user();
         $user->token = $token;
-        $user->loadMissing(['roles']);
+        $users = $user->loadMissing('roles');
 
-        return $this->returnData($user, __('backend.operation completed successfully', [], app()->getLocale()));
+        $data = [
+            'id'             => $users->id,
+            'fullName'       => $users->fullName,
+            'email'          => $users->email,
+            'email_verified_at' => $users->email_verified_at,
+            'phoneNumber'    => $users->phoneNumber,
+            'token'          => $users->token,
+            'name_role'      => optional($users->roles->first())->name,
+            'roles'          => optional($users->roles->first())->pivot->role_id
+        ];
+
+        return $this->returnData($data, __('backend.operation completed successfully', [], app()->getLocale()));
     }
 
 

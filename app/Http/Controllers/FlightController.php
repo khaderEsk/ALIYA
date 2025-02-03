@@ -50,9 +50,24 @@ class FlightController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function getMyFlight()
     {
-        //
+        try {
+            DB::beginTransaction();
+            $user = auth()->user();
+            if (!$user) {
+                return $this->returnError(404, 'User Not Found');
+            }
+            $flights = $user->flights()
+                ->with('startingPointGovernorate')
+                ->with('targetPointGovernorate')
+                ->get();
+            DB::commit();
+            return $this->returnData($flights, 'Operation completed successfully');
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return $this->returnError($ex->getCode(), 'noo');
+        }
     }
 
     /**
@@ -94,7 +109,7 @@ class FlightController extends Controller
             if (!$user) {
                 return $this->returnError(404, 'User Not Found');
             }
-            $flight = Flight::with('user','startingPointGovernorate', 'targetPointGovernorate')
+            $flight = Flight::with('user', 'startingPointGovernorate', 'targetPointGovernorate')
                 ->where('id', $id)
                 ->first();
 

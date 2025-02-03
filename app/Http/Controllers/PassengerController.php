@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use Google\Cloud\Core\GrpcTrait;
+use App\Http\Requests\PassengerRequest;
+use App\Models\Flight;
+use App\Models\Passenger;
+use App\Traits\GeneralTrait;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PassengerController extends Controller
 {
-    use GrpcTrait;
+    use GeneralTrait;
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        //
-    }
+    public function index() {}
 
     /**
      * Show the form for creating a new resource.
@@ -27,18 +28,60 @@ class PassengerController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, $id)
     {
-        
+        try {
+            DB::beginTransaction();
+
+
+            $user = auth()->user();
+            if (!$user) {
+                return $this->returnError(404, 'User Not Found');
+            }
+
+            $flight = Flight::find($id);
+            if (!$flight) {
+                return $this->returnError(404, 'Flight Not Found');
+            }
+            // if (!$request->has('numberPassenger') || !is_array($request->numberPassenger)) {
+            //     return $this->returnError(400, 'Invalid passenger data');
+            // }
+
+            $list_passengers = [];
+
+            foreach ($request->numberPassenger as $value) {
+                $existingPassenger = Passenger::where('flight_id', $id)
+                    ->where('numberPassenger', $value)
+                    ->first();
+
+                if ($existingPassenger) {
+                    return response()->json([
+                        'error' => "Seat number $value is already booked for this flight."
+                    ], 400);
+                }
+                $list_passengers[] = [
+                    'numberPassenger' => $value,
+                    'flight_id' => $id,
+                    'status' => true,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+            }
+
+            Passenger::insert($list_passengers);
+
+            DB::commit();
+            return $this->returnData(200, 'Operation completed successfully');
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return $this->returnError(500, 'An unexpected error occurred. Please try again later.');
+        }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
-    {
-        //
-    }
+    public function show($id) {}
 
     /**
      * Show the form for editing the specified resource.

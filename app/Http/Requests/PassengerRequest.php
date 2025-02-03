@@ -24,7 +24,7 @@ class PassengerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'numberPassenger' =>' re'
+            'numberPassenger' => ' require|array'
         ];
     }
 }
