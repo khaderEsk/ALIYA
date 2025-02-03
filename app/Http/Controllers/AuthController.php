@@ -25,29 +25,34 @@ class AuthController extends Controller
     {
         $credentials = $request->only(['email', 'password']);
         $token = JWTAuth::attempt($credentials);
-        $exist = User::where('email', $request->email)->first();
 
-        if ($exist && !$token)
-            return $this->returnError(401, __('backend.The password is wrong', [], app()->getLocale()));
-
-        if (!$token)
-            return $this->returnError(401, __('backend.Account Not found', [], app()->getLocale()));
-        if (!$exist->email_verified_at) {
-            return $this->returnError(400, 'Please enter  the Verification Code');
+        // If token generation fails, return an error
+        if (!$token) {
+            $userExists = User::where('email', $request->email)->exists();
+            return $this->returnError(
+                401,
+                $userExists
+                    ? __('backend.The password is wrong', [], app()->getLocale())
+                    : __('backend.Account Not found', [], app()->getLocale())
+            );
         }
+        // Get the authenticated user
         $user = auth()->user();
-        $user->token = $token;
-        $users = $user->loadMissing('roles');
-
+        // Check if the email is verified
+        if (!$user->email_verified_at) {
+            return $this->returnError(400, 'Please enter the Verification Code');
+        }
+        // Load the user's roles and prepare the response data
+        $user->loadMissing('roles');
         $data = [
-            'id'             => $users->id,
-            'fullName'       => $users->fullName,
-            'email'          => $users->email,
-            'email_verified_at' => $users->email_verified_at,
-            'phoneNumber'    => $users->phoneNumber,
-            'token'          => $users->token,
-            'name_role'      => optional($users->roles->first())->name,
-            'roles'          => optional($users->roles->first())->pivot->role_id
+            'id' => $user->id,
+            'fullName' => $user->fullName,
+            'email' => $user->email,
+            'email_verified_at' => $user->email_verified_at,
+            'phoneNumber' => $user->phoneNumber,
+            'token' => $token,
+            'name_role' => optional($user->roles->first())->name,
+            'roles' => optional($user->roles->first())->pivot->role_id,
         ];
 
         return $this->returnData($data, __('backend.operation completed successfully', [], app()->getLocale()));
