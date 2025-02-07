@@ -35,11 +35,10 @@ Route::post('refreshToken', [AuthController::class, 'refreshToken']);
 Route::get('test', [AuthController::class, 'test'])->middleware('jwt.verify');
 
 
-
 Route::group(['middleware' => ['jwt.verify']], function () {
 
 
-    Route::group(['prefix' => 'flights'], function () {
+    Route::prefix('flights')->group(function () {
         Route::get('getAllGovernments', [GovernmentController::class, 'index']);
         Route::Post('verification', [EmailController::class, 'verification']);
 
@@ -49,11 +48,13 @@ Route::group(['middleware' => ['jwt.verify']], function () {
             Route::Post('reservation/{id}', [PassengerController::class, 'store']);
         });
 
-        Route::group(['middleware' => ['hasRole:admin']], function () {
-            Route::post('store', [FlightController::class, 'store']);
-            Route::Post('update/{id}', [FlightController::class, 'update']);
-            Route::delete('delete/{id}', [FlightController::class, 'destroy']);
-            Route::get('getMyFlight', [FlightController::class, 'getMyFlight']);
+        Route::middleware('hasRole:admin')->group(function () {
+            Route::controller(FlightController::class)->group(function () {
+                Route::post('store', 'store');
+                Route::Post('update/{id}', 'update');
+                Route::delete('delete/{id}', 'destroy');
+                Route::get('getMyFlight', 'getMyFlight');
+            });
         });
     });
 });
