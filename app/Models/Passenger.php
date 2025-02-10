@@ -25,4 +25,8 @@ class Passenger extends Model
     {
         return $this->belongsTo(Flight::class, 'flight_id');
     }
+    public function user()
+    {
+        return $this->belongsTo(User::class,'user_id');
+    }
 }

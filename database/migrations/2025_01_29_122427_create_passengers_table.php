@@ -16,6 +16,9 @@ return new class extends Migration
             $table->integer('flight_id')
                 ->references('id')->on('flights')
                 ->onDelete('cascade');
+            $table->integer('user_id')
+                ->references('id')->on('users')
+                ->onDelete('cascade');
             $table->integer('numberPassenger');
             $table->boolean('status');
             $table->timestamps();

@@ -55,6 +55,7 @@ Route::group(['middleware' => ['jwt.verify']], function () {
                 Route::delete('delete/{id}', 'destroy');
                 Route::get('getMyFlight', 'getMyFlight');
             });
+            Route::get('passenger/{id}', [PassengerController::class, 'show']);
         });
     });
 });

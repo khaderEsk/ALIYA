@@ -43,9 +43,6 @@ class PassengerController extends Controller
             if (!$flight) {
                 return $this->returnError(404, 'Flight Not Found');
             }
-            // if (!$request->has('numberPassenger') || !is_array($request->numberPassenger)) {
-            //     return $this->returnError(400, 'Invalid passenger data');
-            // }
 
             $list_passengers = [];
 
@@ -62,6 +59,7 @@ class PassengerController extends Controller
                 $list_passengers[] = [
                     'numberPassenger' => $value,
                     'flight_id' => $id,
+                    'user_id' => $user->id,
                     'status' => true,
                     'created_at' => now(),
                     'updated_at' => now()
@@ -81,7 +79,33 @@ class PassengerController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id) {}
+    public function show($id)
+    {
+
+        try {
+            DB::beginTransaction();
+
+            $user = auth()->user();
+            if (!$user) {
+                return $this->returnError(404, 'User Not Found');
+            }
+
+            $flight = Flight::find($id);
+            if (!$flight) {
+                return $this->returnError(404, 'Flight Not Found');
+            }
+            $passengers = $flight->Passenger()
+                -> with(['user' => function ($query) {
+                    $query->select('id', 'fullName', 'phoneNumber');
+                }])
+                ->get();
+            DB::commit();
+            return $this->returnData($passengers, 'Operation completed successfully');
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return $this->returnError(500, 'An unexpected error occurred. Please try again later.');
+        }
+    }
 
     /**
      * Show the form for editing the specified resource.
