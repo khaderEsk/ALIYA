@@ -69,11 +69,11 @@ class AuthController extends Controller
                 'title' => 'Code login',
                 'code' => $random_number,
             ];
-            // try {
-            Mail::to($request->email)->send(new VerfMail($mailData));
-            // } catch (\Exception $e) {
-            //     return $this->returnError(400,$e->getMessage());
-            // }
+            try {
+                Mail::to($request->email)->send(new VerfMail($mailData));
+            } catch (\Exception $e) {
+                return $this->returnError(400, "email not sent");
+            }
 
             $user = User::create([
                 'fullName'       => $request->fullName,

@@ -38,16 +38,14 @@ Route::get('test', [AuthController::class, 'test'])->middleware('jwt.verify');
 Route::group(['middleware' => ['jwt.verify']], function () {
 
 
+    Route::Post('verification', [EmailController::class, 'verification']);
     Route::prefix('flights')->group(function () {
         Route::get('getAllGovernments', [GovernmentController::class, 'index']);
-        Route::Post('verification', [EmailController::class, 'verification']);
-
         Route::group(['middleware' => ['hasRole:admin|user']], function () {
             Route::Post('getAll', [FlightController::class, 'index']);
             Route::get('show/{id}', [FlightController::class, 'show']);
             Route::Post('reservation/{id}', [PassengerController::class, 'store']);
         });
-
         Route::middleware('hasRole:admin')->group(function () {
             Route::controller(FlightController::class)->group(function () {
                 Route::post('store', 'store');
