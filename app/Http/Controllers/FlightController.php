@@ -109,16 +109,32 @@ class FlightController extends Controller
             if (!$user) {
                 return $this->returnError(404, 'User Not Found');
             }
-            $flight = Flight::with('user', 'startingPointGovernorate', 'targetPointGovernorate')
-                ->where('id', $id)
-                ->first();
+            $flight = Flight::with([
+                'user:id,fullName',
+                'startingPointGovernorate:id,name',
+                'targetPointGovernorate:id,name',
+                'passenger:id,flight_id,numberPassenger'
+            ])->findOrFail($id);
 
+            $data = [
+                'companyName'                   => $flight->user->fullName,
+                'startingStation' => $flight->startingPointGovernorate->name,
+                'endingStation'   => $flight->targetPointGovernorate->name,
+                'startingTime'               => $flight->startingTime,
+                'endingTime'                 => $flight->endingTime,
+                'allNumberPassengers'        => $flight->numberPassengers,
+                'remainingNumber ' => $flight->numberPassengers - $flight->passenger->count(),
+                'reservedNumber ' => $flight->passenger->count(),
+                'reservedSeats'          => $flight->passenger->map(
+                    fn($p) => ['seatNumber' => $p->numberPassenger]
+                )->values()->toArray(),
+            ];
             if (!$flight) {
                 DB::rollback();
                 return $this->returnError(404, 'not found');
             }
             DB::commit();
-            return $this->returnData($flight, __('backend.operation completed successfully', [], app()->getLocale()));
+            return $this->returnData($data, __('backend.operation completed successfully', [], app()->getLocale()));
         } catch (\Exception $ex) {
             DB::rollback();
             return $this->returnError($ex->getCode(), 'Please try again later');
