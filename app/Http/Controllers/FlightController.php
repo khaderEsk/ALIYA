@@ -30,6 +30,7 @@ class FlightController extends Controller
                 ->join('users', 'flights.user_id', '=', 'users.id')
                 ->orderBy('users.fullName')
                 ->select(
+                    'flights.id',
                     'flights.statingPoint',
                     'flights.targetPoint',
                     'flights.numberPassengers',
