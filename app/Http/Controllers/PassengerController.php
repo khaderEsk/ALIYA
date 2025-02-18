@@ -33,7 +33,6 @@ class PassengerController extends Controller
         try {
             DB::beginTransaction();
 
-
             $user = auth()->user();
             if (!$user) {
                 return $this->returnError(404, 'User Not Found');
@@ -44,8 +43,12 @@ class PassengerController extends Controller
                 return $this->returnError(404, 'Flight Not Found');
             }
 
-            $list_passengers = [];
+            $request->validate([
+                'numberPassenger' => 'required|array',
+                'numberPassenger.*' => 'integer|min:1', // Ensure each seat number is a positive integer
+            ]);
 
+            $list_passengers = [];
             foreach ($request->numberPassenger as $value) {
                 $existingPassenger = Passenger::where('flight_id', $id)
                     ->where('numberPassenger', $value)
@@ -56,6 +59,8 @@ class PassengerController extends Controller
                         'error' => "Seat number $value is already booked for this flight."
                     ], 400);
                 }
+
+                // Add the passenger to the list
                 $list_passengers[] = [
                     'numberPassenger' => $value,
                     'flight_id' => $id,
@@ -66,16 +71,19 @@ class PassengerController extends Controller
                 ];
             }
 
+            // Insert all passengers at once
             Passenger::insert($list_passengers);
 
             DB::commit();
-            return $this->returnData(200, 'Operation completed successfully');
+            return $this->returnData([], 'Operation completed successfully', 200);
+        } catch (\Illuminate\Validation\ValidationException $ex) {
+            DB::rollback();
+            return $this->returnError(400, $ex->errors());
         } catch (\Exception $ex) {
             DB::rollback();
-            return $this->returnError(500, 'An unexpected error occurred. Please try again later.');
+            return $this->returnError(500, $ex->getMessage());
         }
     }
-
     /**
      * Display the specified resource.
      */
@@ -95,7 +103,7 @@ class PassengerController extends Controller
                 return $this->returnError(404, 'Flight Not Found');
             }
             $passengers = $flight->Passenger()
-                -> with(['user' => function ($query) {
+                ->with(['user' => function ($query) {
                     $query->select('id', 'fullName', 'phoneNumber');
                 }])
                 ->get();
