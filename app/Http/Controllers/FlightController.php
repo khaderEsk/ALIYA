@@ -126,9 +126,7 @@ class FlightController extends Controller
                 'allNumberPassengers'        => $flight->numberPassengers,
                 'remainingNumber ' => $flight->numberPassengers - $flight->passenger->count(),
                 'reservedNumber ' => $flight->passenger->count(),
-                'reservedSeats'          => $flight->passenger->map(
-                    fn($p) => ['seatNumber' => $p->numberPassenger]
-                )->values()->toArray(),
+                'reservedSeats'          => $flight->passenger->pluck('numberPassenger')->toArray(),
             ];
             if (!$flight) {
                 DB::rollback();
