@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Traits\GeneralTrait;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Spatie\Permission\Models\Role;
@@ -64,6 +63,10 @@ class AuthController extends Controller
     {
         DB::beginTransaction();
         try {
+            $image = null;
+            if (isset($request->image)) {
+                $image = $this->saveImage($request->image, $this->uploadPath);
+            }
             $random_number = random_int(100000, 999999);
             $mailData = [
                 'title' => 'Code login',
@@ -80,7 +83,8 @@ class AuthController extends Controller
                 'email'          => $request->email,
                 'password'       => $request->password,
                 'phoneNumber'    => $request->phoneNumber,
-                'code'           => $random_number
+                'code'           => $random_number,
+                'image'          =>$request->image
             ]);
 
             $credentials = ['email' => $user->email, 'password' => $request->password];

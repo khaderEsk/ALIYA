@@ -9,6 +9,7 @@ use App\Http\Controllers\EmailController;
 use App\Http\Controllers\FlightController;
 use App\Http\Controllers\GovernmentController;
 use App\Http\Controllers\PassengerController;
+use App\Http\Controllers\SuperAdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,6 +55,16 @@ Route::group(['middleware' => ['jwt.verify']], function () {
                 Route::get('getMyFlight', 'getMyFlight');
             });
             Route::get('passenger/{id}', [PassengerController::class, 'show']);
+        });
+    });
+
+    Route::group(['middleware' => ['hasRole:superAdmin']], function () {
+        Route::prefix('superAdmin')->group(function () {
+            Route::Post('addCompany', [SuperAdminController::class, 'store']);
+            Route::get('getAllCompany', [SuperAdminController::class, 'index']);
+            Route::get('getAllUser', [SuperAdminController::class, 'getAllUser']);
+            Route::get('show/{id}', [FlightController::class, 'show']);
+            Route::Post('reservation/{id}', [PassengerController::class, 'store']);
         });
     });
 });

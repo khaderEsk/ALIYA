@@ -16,8 +16,8 @@ class CompanySeeder extends Seeder
     public function run(): void
     {
         DB::table('users')->insert([
-            'fullName' =>  'القدموس',
-            'email' => 'kadmos@gmail.com',
+            'fullName' =>  'Ali',
+            'email' => 'SuperAdmin@gmail.com',
             'password' => bcrypt('12345678q'),
             'phoneNumber' => '0930668517',
             'email_verified_at' => now(),
@@ -25,7 +25,7 @@ class CompanySeeder extends Seeder
             'updated_at' => now(),
         ]);
         $admin = User::find(1);
-        $role = Role::where('name', 'admin')->first();
+        $role = Role::where('name', 'superAdmin')->first();
         $admin->assignRole($role);
 
         DB::table('users')->insert([
