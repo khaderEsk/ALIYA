@@ -7,7 +7,6 @@ use App\Models\User;
 use App\Traits\GeneralTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use Spatie\Permission\Models\Role;
 
 class SuperAdminController extends Controller
@@ -88,18 +87,12 @@ class SuperAdminController extends Controller
             ]);
 
             $credentials = ['email' => $user->email, 'password' => $request->password];
-            // $token = JWTAuth::attempt($credentials);
-            // $user->token = $token;
 
             $role = Role::where('id', '=', 1)->first();
             if (!$role) {
                 return $this->returnError(404, 'Role Not found');
             }
             $user->assignRole($role);
-            // $user->loadMissing(['roles']);
-            // if (!$token) {
-            //     return $this->returnError(401, 'ليس لديك صلاحية ');
-            // }
             DB::commit();
             return $this->returnData($user, 'تم إضافة شركة النقل بنجاح');
         } catch (\Exception $e) {
@@ -135,8 +128,20 @@ class SuperAdminController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        try {
+            DB::beginTransaction();
+            $user = User::where('id', $id)->first();
+            if (!$user) {
+                return $this->returnError(404, 'المستخدم غير موجود');
+            }
+            $user->delete();
+            DB::commit();
+            return $this->returnData('تم حذف المستخدم بنجاح', 200);
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
     }
 }

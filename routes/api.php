@@ -5,6 +5,7 @@ use App\Http\Controllers\PasswordController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BlockController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\FlightController;
 use App\Http\Controllers\GovernmentController;
@@ -63,8 +64,9 @@ Route::group(['middleware' => ['jwt.verify']], function () {
             Route::Post('addCompany', [SuperAdminController::class, 'store']);
             Route::get('getAllCompany', [SuperAdminController::class, 'index']);
             Route::get('getAllUser', [SuperAdminController::class, 'getAllUser']);
-            Route::get('show/{id}', [FlightController::class, 'show']);
-            Route::Post('reservation/{id}', [PassengerController::class, 'store']);
+
+            Route::get('block-user/{id}', [BlockController::class, 'store']);
+            Route::delete('unblock-user/{id}', [BlockController::class, 'destroy']);
         });
     });
 });

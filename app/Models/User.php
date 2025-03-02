@@ -58,11 +58,21 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(Flight::class, 'user_id');
     }
 
+
+    public function block()
+    {
+        return $this->hasOne(Block::class, 'user_id', 'id');
+    }
+
+    public function isBlocked()
+    {
+        return $this->block()->exists();
+    }
+    
     public function setPasswordAttribute($value)
     {
         $this->attributes['password'] = Hash::make($value);
     }
-
 
     public function getJWTIdentifier()
     {
