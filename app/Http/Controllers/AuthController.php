@@ -37,6 +37,8 @@ class AuthController extends Controller
         }
         // Get the authenticated user
         $user = auth()->user();
+        if ($user->block)
+            return $this->returnError(400, 'الحساب محظور');
         // Check if the email is verified
         if (!$user->email_verified_at) {
             return $this->returnError(400, 'Please enter the Verification Code');
@@ -84,7 +86,7 @@ class AuthController extends Controller
                 'password'       => $request->password,
                 'phoneNumber'    => $request->phoneNumber,
                 'code'           => $random_number,
-                'image'          =>$request->image
+                'image'          => $request->image
             ]);
 
             $credentials = ['email' => $user->email, 'password' => $request->password];

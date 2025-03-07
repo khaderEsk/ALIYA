@@ -10,6 +10,7 @@ use App\Http\Controllers\EmailController;
 use App\Http\Controllers\FlightController;
 use App\Http\Controllers\GovernmentController;
 use App\Http\Controllers\PassengerController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SuperAdminController;
 
 /*
@@ -64,9 +65,12 @@ Route::group(['middleware' => ['jwt.verify']], function () {
             Route::Post('addCompany', [SuperAdminController::class, 'store']);
             Route::get('getAllCompany', [SuperAdminController::class, 'index']);
             Route::get('getAllUser', [SuperAdminController::class, 'getAllUser']);
-
+            Route::post('searchUser', [SearchController::class, 'searchUser']);
             Route::get('block-user/{id}', [BlockController::class, 'store']);
             Route::delete('unblock-user/{id}', [BlockController::class, 'destroy']);
+            Route::get('delete-company/{id}', [SuperAdminController::class, 'destroy']);
+            Route::get('details-company/{id}', [SuperAdminController::class, 'show']);
+            Route::post('update-company/{id}', [SuperAdminController::class, 'update']);
         });
     });
 });

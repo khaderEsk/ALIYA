@@ -22,11 +22,11 @@ class GovernmentController extends Controller
             $user = auth()->user();
 
             if (!$user) {
-                return $this->returnError(404, 'User Not Found');
+                return $this->returnError(404, 'المستخدم غير موجود');
             }
             $governments = Governorate::all();
             DB::commit();
-            return $this->returnData($governments, 'Operation completed successfully');
+            return $this->returnData($governments, 'تمت العملية بنجاح');
         } catch (\Exception $ex) {
             DB::rollback();
             $httpCode = ($ex->getCode() >= 100 && $ex->getCode() <= 599) ? $ex->getCode() : 500;

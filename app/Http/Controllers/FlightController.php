@@ -21,7 +21,7 @@ class FlightController extends Controller
             $user = auth()->user();
 
             if (!$user) {
-                return $this->returnError(404, 'User Not Found');
+                return $this->returnError(404, 'المستخدم غير موجود');
             }
             $flights = Flight::where('statingPoint', $request->statingPoint)
                 ->where('targetPoint', $request->targetPoint)
@@ -40,11 +40,10 @@ class FlightController extends Controller
                 )
                 ->get();
             DB::commit();
-            return $this->returnData($flights, 'Operation completed successfully', $flights);
+            return $this->returnData($flights, 'تمت العملية بنجاح');
         } catch (\Exception $ex) {
             DB::rollback();
-            $httpCode = ($ex->getCode() >= 100 && $ex->getCode() <= 599) ? $ex->getCode() : 500;
-            return $this->returnError($httpCode, __('An unexpected error occurred. Please try again later.'));
+            return back()->withErrors(['error' => 'يوجد بعض الاخطاء, يرجى المحاولة لاحقاً']);
         }
     }
 
@@ -57,17 +56,17 @@ class FlightController extends Controller
             DB::beginTransaction();
             $user = auth()->user();
             if (!$user) {
-                return $this->returnError(404, 'User Not Found');
+                return $this->returnError(404, 'المستخدم غير موجود');
             }
             $flights = $user->flights()
                 ->with('startingPointGovernorate')
                 ->with('targetPointGovernorate')
                 ->get();
             DB::commit();
-            return $this->returnData($flights, 'Operation completed successfully');
+            return $this->returnData($flights, 'تمت العملية بنجاح');
         } catch (\Exception $ex) {
             DB::rollback();
-            return $this->returnError($ex->getCode(), 'noo');
+            return back()->withErrors(['error' => 'يوجد بعض الاخطاء, يرجى المحاولة لاحقاً']);
         }
     }
 
@@ -80,7 +79,7 @@ class FlightController extends Controller
             DB::beginTransaction();
             $user = auth()->user();
             if (!$user) {
-                return $this->returnError(404, 'User Not Found');
+                return $this->returnError(404, 'المستخدم غير موجود');
             }
 
             $user->flights()->create([
@@ -91,10 +90,11 @@ class FlightController extends Controller
                 'endingTime' => $request->endingTime,
             ]);
             DB::commit();
-            return $this->returnData(202, 'Operation completed successfully');
+            return $this->returnData(202, 'تمت العملية بنجاح');
         } catch (\Exception $ex) {
             DB::rollback();
-            return $this->returnError($ex->getCode(), 'noo');
+            return back()->withErrors(['error' => 'يوجد بعض الاخطاء, يرجى المحاولة لاحقاً']);
+        
         }
     }
 
@@ -108,7 +108,7 @@ class FlightController extends Controller
             DB::beginTransaction();
             $user = auth()->user();
             if (!$user) {
-                return $this->returnError(404, 'User Not Found');
+                return $this->returnError(404, 'المستخدم غير موجود');
             }
             $flight = Flight::with([
                 'user:id,fullName',
@@ -133,10 +133,11 @@ class FlightController extends Controller
                 return $this->returnError(404, 'not found');
             }
             DB::commit();
-            return $this->returnData($data, __('backend.operation completed successfully', [], app()->getLocale()));
+            return $this->returnData($data, 'تمت العملية بنجاح');
         } catch (\Exception $ex) {
             DB::rollback();
-            return $this->returnError($ex->getCode(), 'Please try again later');
+
+            return back()->withErrors(['error' => 'يوجد بعض الاخطاء, يرجى المحاولة لاحقاً']);
         }
     }
     /**
@@ -148,7 +149,7 @@ class FlightController extends Controller
             DB::beginTransaction();
             $user = auth()->user();
             if (!$user) {
-                return $this->returnError(404, 'User Not Found');
+                return $this->returnError(404, 'المستخدم غير موجود');
             }
             $flights = $user->flights()->where('id', $id)->first();
             if (!$flights)
@@ -162,10 +163,11 @@ class FlightController extends Controller
                     $request->endingTime : $flights->endingTime,
             ]);
             DB::commit();
-            return $this->returnData($flights, __('backend.operation completed successfully', [], app()->getLocale()));
+            return $this->returnData($flights, 'تمت العملية بنجاح');
         } catch (\Exception $ex) {
             DB::rollback();
-            return $this->returnError($ex->getCode(), 'Please try again later');
+
+            return back()->withErrors(['error' => 'يوجد بعض الاخطاء, يرجى المحاولة لاحقاً']);
         }
     }
 
@@ -179,7 +181,7 @@ class FlightController extends Controller
             $user = auth()->user();
 
             if (!$user) {
-                return $this->returnError(404, 'User Not Found');
+                return $this->returnError(404, 'المستخدم غير موجود');
             }
 
             $flight = $user->flights()->where('id', $id)->first();
@@ -190,10 +192,11 @@ class FlightController extends Controller
 
             $flight->delete();
             DB::commit();
-            return $this->returnData(200, __('backend.operation completed successfully', [], app()->getLocale()));
+            return $this->returnData(200, 'تمت العملية بنجاح');
         } catch (\Exception $ex) {
             DB::rollback();
-            return $this->returnError($ex->getCode(), 'Please try again later');
+
+            return back()->withErrors(['error' => 'يوجد بعض الاخطاء, يرجى المحاولة لاحقاً']);
         }
     }
 }

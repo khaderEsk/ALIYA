@@ -64,11 +64,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasOne(Block::class, 'user_id', 'id');
     }
 
-    public function isBlocked()
+    public function isBlocked(): bool
     {
         return $this->block()->exists();
     }
-    
+
     public function setPasswordAttribute($value)
     {
         $this->attributes['password'] = Hash::make($value);

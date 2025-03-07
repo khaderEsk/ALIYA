@@ -35,7 +35,7 @@ class PassengerController extends Controller
 
             $user = auth()->user();
             if (!$user) {
-                return $this->returnError(404, 'User Not Found');
+                return $this->returnError(404, 'المستخدم غير موجود');
             }
 
             $flight = Flight::find($id);
@@ -95,7 +95,7 @@ class PassengerController extends Controller
 
             $user = auth()->user();
             if (!$user) {
-                return $this->returnError(404, 'User Not Found');
+                return $this->returnError(404, 'المستخدم غير موجود');
             }
 
             $flight = Flight::find($id);

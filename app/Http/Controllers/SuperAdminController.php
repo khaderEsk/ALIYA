@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CompanyRequest;
+use App\Models\Flight;
 use App\Models\User;
 use App\Traits\GeneralTrait;
 use Illuminate\Http\Request;
@@ -22,7 +23,6 @@ class SuperAdminController extends Controller
     public function index()
     {
         try {
-            DB::beginTransaction();
             $user = auth()->user();
             if (!$user) {
                 return $this->returnError(404, 'المستخدم غير موجود');
@@ -31,7 +31,15 @@ class SuperAdminController extends Controller
                 $query->where('name', 'admin');
             })
                 ->select('id', 'fullName', 'image', 'phoneNumber')
-                ->get();
+                ->get()->map(function ($user) {
+                    return [
+                        'id'          => $user->id,
+                        'fullName'    => $user->fullName,
+                        'image'       => $user->image,
+                        'phoneNumber' => $user->phoneNumber,
+                        'isBlocked'   => $user->isBlocked(), // ✅ إضافة حالة الحظر
+                    ];
+                });
             return $this->returnData($users, 'تمت العملية بنجاح');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -41,7 +49,6 @@ class SuperAdminController extends Controller
     public function getAllUser()
     {
         try {
-            DB::beginTransaction();
             $user = auth()->user();
             if (!$user) {
                 return $this->returnError(404, 'المستخدم غير موجود');
@@ -49,8 +56,16 @@ class SuperAdminController extends Controller
             $users = User::whereHas('roles', function ($query) {
                 $query->where('name', 'user');
             })
-                ->select('id', 'fullName', 'email', 'phoneNumber', 'image')
-                ->get();
+                ->select('id', 'fullName', 'image', 'phoneNumber')
+                ->get()->map(function ($user) {
+                    return [
+                        'id'          => $user->id,
+                        'fullName'    => $user->fullName,
+                        'image'       => $user->image,
+                        'phoneNumber' => $user->phoneNumber,
+                        'isBlocked'   => $user->isBlocked(), // ✅ إضافة حالة الحظر
+                    ];
+                });
             return $this->returnData($users, 'تمت العملية بنجاح');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -83,6 +98,7 @@ class SuperAdminController extends Controller
                 'password'       => $request->password,
                 'phoneNumber'    => $request->phoneNumber,
                 'image'          => $image,
+                'email_verified_at' => now(),
                 'role_id'        => 1
             ]);
 
@@ -104,25 +120,83 @@ class SuperAdminController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($id)
     {
-        //
+        try {
+            $admin = auth()->user();
+            if (!$admin) {
+                return $this->returnError(404, 'المستخدم غير موجود');
+            }
+            $company = User::where('id', $id)
+                ->whereHas('roles', function ($query) {
+                    $query->where('name', 'admin');
+                })
+                ->with(['flights' => function ($query) {
+                    $query->select(
+                        'id',
+                        'startingPoint',
+                        'targetPoint',
+                        'numberPassengers',
+                        'startingTime',
+                    )
+                        ->with([
+                            'startingPointGovernorate:id,name',
+                            'targetPointGovernorate:id,name',
+                            'passenger:id,flight_id,numberPassenger'
+                        ])
+                        ->get(); // 10 رحلات لكل صفحة
+                }])
+                ->select('id', 'fullName', 'isBlocked')
+                ->findOrFail($id);
+
+            return $this->returnData($admin, 'تمت العملية بنجاح');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'يوجد بعض الاخطاء, يرجى المحاولة لاحقاً']);
+        }
     }
+
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
-    {
-        //
-    }
+    public function edit($id) {}
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        try {
+            DB::beginTransaction();
+            $admin = auth()->user();
+            if (!$admin) {
+                return $this->returnError(404, 'المستخدم غير موجود');
+            }
+            $company = User::where('id', $id)->whereHas('roles', function ($query) {
+                $query->where('name', 'admin');
+            })->first();
+
+            if (!$company) {
+                return $this->returnError(404, 'الشركة غير موجودة');
+            }
+            $image = null;
+            if (isset($request->image)) {
+                $image = $this->saveImage($request->image, $this->uploadPath);
+                $this->deleteImage($company->image);
+            }
+            $company->update([
+                'fullName' => isset($request->fullName) ? $request->fullName : $company->fullName,
+                'email' => isset($request->email) ? $request->email : $company->email,
+                'phoneNumber' => isset($request->phoneNumber) ? $request->phoneNumber : $company->phoneNumber,
+                'image' => isset($request->image) ? $image : $company->image,
+            ]);
+            DB::commit();
+            return $this->returnData($company, 'تمت العملية بنجاح');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'يوجد بعض الاخطاء, يرجى المحاولة لاحقاً']);
+        }
     }
 
     /**
@@ -134,11 +208,13 @@ class SuperAdminController extends Controller
             DB::beginTransaction();
             $user = User::where('id', $id)->first();
             if (!$user) {
-                return $this->returnError(404, 'المستخدم غير موجود');
+                return $this->returnError(404, 'الشركة غير موجود');
             }
             $user->delete();
+            $user->flights()->delete();
+            $user->block()->delete();
             DB::commit();
-            return $this->returnData('تم حذف المستخدم بنجاح', 200);
+            return $this->returnData('تم حذف الشركة بنجاح', 200);
         } catch (\Exception $ex) {
             DB::rollback();
             return $this->returnError($ex->getCode(), $ex->getMessage());
