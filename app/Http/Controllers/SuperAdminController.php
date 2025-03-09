@@ -212,7 +212,6 @@ class SuperAdminController extends Controller
             if (!$user) {
                 return $this->returnError(404, 'الشركة غير موجود');
             }
-            
             return $user;
             $user->delete();
             $user->flights()->delete();
