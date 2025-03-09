@@ -206,10 +206,14 @@ class SuperAdminController extends Controller
     {
         try {
             DB::beginTransaction();
-            $user = User::where('id', $id)->first();
+            $user = User::where('id', $id)->whereHas('roles', function ($query) {
+                $query->where('name', 'admin');
+            })->first();
             if (!$user) {
                 return $this->returnError(404, 'الشركة غير موجود');
             }
+            
+            return $user;
             $user->delete();
             $user->flights()->delete();
             $user->block()->delete();
