@@ -117,9 +117,6 @@ class SuperAdminController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
         try {
