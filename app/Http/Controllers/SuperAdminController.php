@@ -119,6 +119,7 @@ class SuperAdminController extends Controller
 
     public function show($id)
     {
+
         try {
             $company = User::where('id', $id)
                 ->whereHas('roles', function ($query) {
