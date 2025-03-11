@@ -123,36 +123,41 @@ class SuperAdminController extends Controller
     public function show($id)
     {
         try {
-            $admin = auth()->user();
-            if (!$admin) {
-                return $this->returnError(404, 'المستخدم غير موجود');
-            }
             $company = User::where('id', $id)
                 ->whereHas('roles', function ($query) {
                     $query->where('name', 'admin');
                 })
-                ->with(['flights' => function ($query) {
-                    $query->select(
-                        'id',
-                        'startingPoint',
-                        'targetPoint',
-                        'numberPassengers',
-                        'startingTime',
-                    )
-                        ->with([
-                            'startingPointGovernorate:id,name',
-                            'targetPointGovernorate:id,name',
-                            'passenger:id,flight_id,numberPassenger'
-                        ])
-                        ->get(); // 10 رحلات لكل صفحة
-                }])
-                ->select('id', 'fullName', 'isBlocked')
-                ->findOrFail($id);
+                ->with('flights', 'flights.targetPointGovernorate', 'flights.startingPointGovernorate')
+                ->find($id);
 
-            return $this->returnData($admin, 'تمت العملية بنجاح');
+            $data = [
+                'companyName' => $company->fullName,
+                'flights' => $company->flights
+                    ->sortBy([
+                        fn($a, $b) => $a->startingPointGovernorate->name <=> $b->startingPointGovernorate->name,
+                        fn($a, $b) => $a->targetPointGovernorate->name <=> $b->targetPointGovernorate->name,
+                        fn($a, $b) => $a->startingTime <=> $b->startingTime,
+                    ])
+                    ->map(function ($flight) {
+                        return [
+                            'id' => $flight->id,
+                            'startingStation' => $flight->startingPointGovernorate->name,
+                            'endingStation' => $flight->targetPointGovernorate->name,
+                            'startingTime' => $flight->startingTime,
+                            'endingTime' => $flight->endingTime,
+                            'numberPassengers' => $flight->numberPassengers
+                        ];
+                    })
+                    ->values() // إعادة تعيين المفاتيح (إزالة المفاتيح الأصلية)
+            ];
+
+            if (!$company) {
+                return $this->returnError(404, 'الشركة غير موجودة');
+            }
+            return $this->returnData($data, 'تمت العملية بنجاح');
         } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->withErrors(['error' => 'يوجد بعض الاخطاء, يرجى المحاولة لاحقاً']);
+            // إرجاع خطأ في حالة حدوث استثناء
+            return $this->returnError(500, 'يوجد بعض الاخطاء, يرجى المحاولة لاحقاً');
         }
     }
 
@@ -218,6 +223,32 @@ class SuperAdminController extends Controller
             $user->block()->delete();
             DB::commit();
             return $this->returnData('تم حذف الشركة بنجاح', 200);
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
+    }
+
+    public function satiation()
+    {
+        try {
+            $admin = auth()->user();
+            if (!$admin) {
+                return $this->returnError(404, 'المستخدم غير موجود');
+            }
+            $company = User::whereHas('roles', function ($query) {
+                $query->where('name', 'admin');
+            })->count();
+
+            $user = User::whereHas('roles', function ($query) {
+                $query->where('name', 'user');
+            })->count();
+            $data = [
+                'company' => $company,
+                'user' => $user
+            ];
+            DB::commit();
+            return $this->returnData($data, 200);
         } catch (\Exception $ex) {
             DB::rollback();
             return $this->returnError($ex->getCode(), $ex->getMessage());

@@ -71,6 +71,7 @@ Route::group(['middleware' => ['jwt.verify']], function () {
             Route::get('delete-company/{id}', [SuperAdminController::class, 'destroy']);
             Route::get('details-company/{id}', [SuperAdminController::class, 'show']);
             Route::post('update-company/{id}', [SuperAdminController::class, 'update']);
+            Route::get('satiation', [SuperAdminController::class, 'satiation']);
         });
     });
 });
