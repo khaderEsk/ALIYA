@@ -94,7 +94,6 @@ class FlightController extends Controller
         } catch (\Exception $ex) {
             DB::rollback();
             return back()->withErrors(['error' => 'يوجد بعض الاخطاء, يرجى المحاولة لاحقاً']);
-        
         }
     }
 
@@ -130,7 +129,7 @@ class FlightController extends Controller
             ];
             if (!$flight) {
                 DB::rollback();
-                return $this->returnError(404, 'not found');
+                return $this->returnError(404, 'الرحلة غير موجودة');
             }
             DB::commit();
             return $this->returnData($data, 'تمت العملية بنجاح');
@@ -153,7 +152,7 @@ class FlightController extends Controller
             }
             $flights = $user->flights()->where('id', $id)->first();
             if (!$flights)
-                return $this->returnError(404, 'not found flight');
+                return $this->returnError(404, 'الرحلة غير موجودة');
             $flights->update([
                 'numberPassengers' => isset($request->numberPassengers) ?
                     $request->numberPassengers : $flights->numberPassengers,
@@ -187,7 +186,7 @@ class FlightController extends Controller
             $flight = $user->flights()->where('id', $id)->first();
 
             if (!$flight) {
-                return $this->returnError(404, 'Flight Not Found');
+                return $this->returnError(404, 'الرحلة غير موجودة');
             }
 
             $flight->delete();

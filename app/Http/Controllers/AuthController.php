@@ -41,7 +41,7 @@ class AuthController extends Controller
             return $this->returnError(400, 'الحساب محظور');
         // Check if the email is verified
         if (!$user->email_verified_at) {
-            return $this->returnError(400, 'Please enter the Verification Code');
+            return $this->returnError(400, 'يجب تأكيد حسابك أولاً');
         }
         // Load the user's roles and prepare the response data
         $user->loadMissing('roles');
@@ -77,7 +77,7 @@ class AuthController extends Controller
             try {
                 Mail::to($request->email)->send(new VerfMail($mailData));
             } catch (\Exception $e) {
-                return $this->returnError(400, "email not sent");
+                return $this->returnError(400, "البريد الإلكتروني غير موجود");
             }
 
             $user = User::create([
@@ -100,7 +100,7 @@ class AuthController extends Controller
             $user->assignRole($role);
             $user->loadMissing(['roles']);
             if (!$token) {
-                return $this->returnError(401, 'Unauthorized');
+                return $this->returnError(401, 'لم يتم المصاقة');
             }
             DB::commit();
             return $this->returnData($user, __('backend.operation completed successfully', [], app()->getLocale()));
@@ -117,7 +117,7 @@ class AuthController extends Controller
         if ($token) {
             try {
                 JWTAuth::setToken($token)->invalidate();
-                return $this->returnSuccessMessage("Logged out successfully", "200");
+                return $this->returnSuccessMessage("تم تسجيل الخروج بنجاح", "200");
             } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
                 return $this->returnError($e->getCode(), 'some thing went wrongs');
             }
@@ -157,23 +157,4 @@ class AuthController extends Controller
         }
     }
 
-    public function test()
-    {
-        $user = auth()->user();
-        //dispatch(new SendFcmNotification($user->id,"message","title"));
-        //        $SERVER_KEY=env('FCM_SERVER_KEY');
-        //        $fcm=Http::acceptJson()->withToken($SERVER_KEY)
-        //            ->post('https://fcm.googleapis.com/fcm/send',
-        //                [
-        //                    'to'=>$user->fcm_token,
-        //                    'notification'=>
-        //                        [
-        //                            'title'=>"title",
-        //                            'body'=>"message"
-        //                        ]
-        //                ]);
-        $fcm = $this->send($user, "title", "message", 'basic');
-        return $fcm;
-        //return $this->returnSuccessMessage('operation completed successfully');
-    }
 }

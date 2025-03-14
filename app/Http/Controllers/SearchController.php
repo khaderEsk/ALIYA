@@ -28,7 +28,7 @@ class SearchController extends Controller
             return $this->returnData($users, 2);
         } catch (\Exception $ex) {
             DB::rollback();
-            return $this->returnError($ex->getCode(), 'Please try again later');
+            return back()->withErrors(['error' => 'يوجد بعض الاخطاء, يرجى المحاولة لاحقاً']);
         }
     }
 }

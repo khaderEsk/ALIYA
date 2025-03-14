@@ -113,7 +113,7 @@ class SuperAdminController extends Controller
             return $this->returnData($user, 'تم إضافة شركة النقل بنجاح');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Something went wrong, please try again.']);
+            return back()->withErrors(['error' => 'يوجد بعض الاخطاء, يرجى المحاولة لاحقاً']);
         }
     }
 
@@ -146,7 +146,7 @@ class SuperAdminController extends Controller
                             'numberPassengers' => $flight->numberPassengers
                         ];
                     })
-                    ->values() // إعادة تعيين المفاتيح (إزالة المفاتيح الأصلية)
+                    ->values() 
             ];
 
             if (!$company) {
@@ -154,7 +154,6 @@ class SuperAdminController extends Controller
             }
             return $this->returnData($data, 'تمت العملية بنجاح');
         } catch (\Exception $e) {
-            // إرجاع خطأ في حالة حدوث استثناء
             return $this->returnError(500, 'يوجد بعض الاخطاء, يرجى المحاولة لاحقاً');
         }
     }

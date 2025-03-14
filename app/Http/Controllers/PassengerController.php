@@ -40,7 +40,7 @@ class PassengerController extends Controller
 
             $flight = Flight::find($id);
             if (!$flight) {
-                return $this->returnError(404, 'Flight Not Found');
+                return $this->returnError(404, 'الرحلة غير موجودة');
             }
 
             $request->validate([
@@ -56,7 +56,7 @@ class PassengerController extends Controller
 
                 if ($existingPassenger) {
                     return response()->json([
-                        'error' => "Seat number $value is already booked for this flight."
+                        'error' => "الكرسي ررقم  $value محجوز"
                     ], 400);
                 }
 
@@ -75,7 +75,7 @@ class PassengerController extends Controller
             Passenger::insert($list_passengers);
 
             DB::commit();
-            return $this->returnData([], 'Operation completed successfully', 200);
+            return $this->returnData('تمت العملية بنجاح', 200);
         } catch (\Illuminate\Validation\ValidationException $ex) {
             DB::rollback();
             return $this->returnError(400, $ex->errors());
@@ -100,7 +100,7 @@ class PassengerController extends Controller
 
             $flight = Flight::find($id);
             if (!$flight) {
-                return $this->returnError(404, 'Flight Not Found');
+                return $this->returnError(404, 'الرحلة غير موجودة');
             }
             $passengers = $flight->Passenger()
                 ->with(['user' => function ($query) {
@@ -108,10 +108,10 @@ class PassengerController extends Controller
                 }])
                 ->get();
             DB::commit();
-            return $this->returnData($passengers, 'Operation completed successfully');
+            return $this->returnData($passengers, 'تمت العملية بنجاح');
         } catch (\Exception $ex) {
             DB::rollback();
-            return $this->returnError(500, 'An unexpected error occurred. Please try again later.');
+            return back()->withErrors(['error' => 'يوجد بعض الاخطاء, يرجى المحاولة لاحقاً']);
         }
     }
 

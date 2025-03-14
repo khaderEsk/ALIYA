@@ -16,16 +16,16 @@ class EmailController extends Controller
         try {
             $user = auth()->user();
             if (!$user) {
-                return $this->returnError(404, 'User Not Found');
+                return $this->returnError(404, 'المستخدم غير موجود');
             }
             if ($request->code != $user->code) {
-                return $this->returnError(404, 'Invalid Code');
+                return $this->returnError(404, 'الكود المدخل خاطئ');
             }
             $user->update([
                 'email_verified_at' => now()
             ]);
             DB::commit();
-            return $this->returnData(200, __('backend.operation completed successfully', [], app()->getLocale()));
+            return $this->returnData(200,"تم تاكيد حسابك بنجاح");
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withErrors(['error' => 'Something went wrong, please try again.']);
